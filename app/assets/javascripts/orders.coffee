@@ -46,6 +46,21 @@ populateQuantity = (current_quantity, requested_quantity, element) ->
   element.val("")
   element.attr("placeholder", available_quantity + " available")
 
+populateQuantity = (category_id, item_id, element) ->
+  cat_id = parseInt category_id
+  itm_id = parseInt item_id
+  qty_available = 0
+  for category in data.categories
+    if category.id is cat_id
+      console.log("cat_id = " + cat_id)
+      for item in category.items
+        if item.id is itm_id
+          console.log("itm_id = " + itm_id)
+          qty_available = item.current_quantity - item.requested_quantity
+  console.log(qty_available)
+  element.change ->
+
+
 addNewOrderRow = ->
   currentNumRows = $("#new-order-table tbody").find("tr").length
   newRow = $("""
@@ -61,7 +76,7 @@ addNewOrderRow = ->
         </select>
       </td>
       <td>
-        <input class="quantity form-control row-#{currentNumRows}" placeholder="Select an Item..."/>
+        <input class="quantity form-control row-#{currentNumRows}" type="number" min="1" max="0" />
       </td>
     </tr>
   """)
@@ -83,9 +98,15 @@ $(document).on "change", ".new-order-row .category", ->
   populateItems $(@).val(), item_element
 
 $(document).on "change", ".new-order-row .item", ->
-  quantity_element = $(@).parents(".new-order-row").find ".quantity"
-  selected = $(@).find('option:selected')
-  populateQuantity selected.data("current-quantity"), selected.data("requested-quantity"), quantity_element
+# <<<<<<< Updated upstream
+  # quantity_element = $(@).parents(".new-order-row").find ".quantity"
+  # selected = $(@).find('option:selected')
+  # populateQuantity selected.data("current-quantity"), selected.data("requested-quantity"), quantity_element
+# =======
+  category_element = $(@).parents(".new-order-row").find ".category"
+  qty_element = $(@).parents(".new-order-row").find ".quantity"
+  populateQuantity category_element.val(), $(@).val(), qty_element
+# >>>>>>> Stashed changes
 
 $(document).on "page:change", ->
   addNewOrderRow() if $("#new-order-table").length > 0
