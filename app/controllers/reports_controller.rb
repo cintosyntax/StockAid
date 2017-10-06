@@ -13,7 +13,7 @@ class ReportsController < ApplicationController
   end
 
   def total_inventory_value
-    @report = Reports::TotalInventoryValue.new(params, session)
+    @report = Reports::TotalInventoryValue.new({}, nil)
   end
 
   def graphs
