@@ -63,18 +63,18 @@ module Reports
       end
 
       def items_data_sql
-        %Q{
-            SELECT id, description, category_id, value,
-              (
-                SELECT versions.object_changes FROM versions 
-                WHERE versions.item_id = items.id 
-                AND versions.item_type = 'Item'
-                #{date_range_conditional}
-                ORDER BY versions.created_at DESC 
-                LIMIT 1
-              ) as quantity
-            FROM items
-          }
+        """
+          SELECT id, description, category_id, value,
+            (
+              SELECT versions.object->'current_quantity' FROM versions 
+              WHERE versions.item_id = items.id 
+              AND versions.item_type = 'Item'
+              #{date_range_conditional}
+              ORDER BY versions.created_at DESC 
+              LIMIT 1
+            ) as quantity
+          FROM items
+        """
       end
     end
 
