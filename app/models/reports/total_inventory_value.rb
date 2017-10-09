@@ -10,20 +10,50 @@ module Reports
     end
 
     module Common
-      def date_range
-        valid_date_range = @params[:date_range].is_a?(Range) &&
-          @params[:date_range].first.is_a?(Time) &&
-          @params[:date_range].last.is_a?(Time)
+      def start_date
+        Time.parse(@params[:report_start_date]) if @params[:report_start_date].present?
+      rescue
+        nil
+      end
 
-        if valid_date_range == true
-          return @params[:date_range]
+      def end_date
+        Time.parse(@params[:report_end_date]) if @params[:report_end_date].present?
+      rescue
+        nil
+      end
+
+      def valid?
+        @errors = []
+
+        if (@params[:report_start_date].present? || @params[:report_end_date].present?) && date_range.blank?
+          @errors << "Invalid dates provided in range."
+        end
+
+        if start_date.present? && end_date.present? && start_date > end_date
+          @errors << "Invalid date range provided."
+        end
+
+        return @errors.blank?
+      end
+
+      def errors
+        @errors
+      end
+
+      def date_range
+        if start_date.present? && end_date.present?
+          return start_date..end_date
         end
       end
 
       def fetch_total_value(obj)
         if obj.is_a?(Item)
           item_id = obj.id.to_s
-          return (items_data[item_id]["quantity"] || 0).to_i * items_data[item_id]["value"].to_f
+
+          item_quantity = fetch_item_quantity(items_data[item_id])
+
+          item_quantity = (items_data[item_id]["quantity"] || items_data[item_id]["current_quantity"] || 0).to_i
+          return item_quantity * items_data[item_id]["value"].to_f
         elsif obj.is_a?(Category)
           # Find all items that are associated with the category.
           category_id = obj.id.to_s
@@ -32,12 +62,25 @@ module Reports
           relevant_items = items_data.select { |id, data| data["category_id"] == category_id }
 
           relevant_items.each do |id, data|
-            item_total = data.fetch("quantity", 0).to_i * data["value"].to_f
+            item_quantity = fetch_item_quantity(data)
+
+            item_total = item_quantity * data["value"].to_f
             category_total_value = category_total_value + item_total
           end
 
           return category_total_value
         end
+      end
+
+      def fetch_item_quantity(item_data)
+        if end_date.present? && end_date >= Time.parse(item_data["updated_at"])
+          # Handle case in which the end_date exceeds the latest version. Instead
+          # use the current quantity instead of relying on the previous version
+          # data.
+          return item_data["current_quantity"].to_i
+        end
+
+        return (item_data["quantity"] || item_data["current_quantity"] || 0).to_i
       end
 
       def items_data
@@ -64,7 +107,7 @@ module Reports
 
       def items_data_sql
         """
-          SELECT id, description, category_id, value,
+          SELECT id, description, category_id, value, current_quantity, updated_at,
             (
               SELECT versions.object->'current_quantity' FROM versions 
               WHERE versions.item_id = items.id 

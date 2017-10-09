@@ -14,6 +14,9 @@ class ReportsController < ApplicationController
 
   def total_inventory_value
     @report = Reports::TotalInventoryValue.new(params, session)
+    unless @report.valid?
+      flash[:errors] = @report.errors
+    end
   end
 
   def graphs
