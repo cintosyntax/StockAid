@@ -11,7 +11,22 @@
   </ul>
 <% end %>
 
+
+
 <% content_for :content do %>
+
+
+
+  <%= form_tag(total_inventory_value_reports_path, method: "get") do %>
+    <%= label_tag(:report_start_date, "Start Date") %>
+    <%= text_field_tag(:report_start_date, params[:report_start_date], {:'data-provide' => 'datepicker'}) %>
+
+    <%= label_tag(:report_end_date, "End Date") %>
+    <%= text_field_tag(:report_end_date,  params[:report_end_date], {:'data-provide' => 'datepicker'}) %>
+
+    <%= submit_tag("Search") %>
+  <% end %>
+
   <div class="tab-content">
     <table class="table table-hover table-striped">
       <thead>

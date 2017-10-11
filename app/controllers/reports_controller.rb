@@ -13,6 +13,9 @@ class ReportsController < ApplicationController
   end
 
   def total_inventory_value
+    puts(params[:report_start_date])
+    puts(params[:report_end_date])
+    
     @report = Reports::TotalInventoryValue.new(params, session)
     unless @report.valid?
       flash[:errors] = @report.errors

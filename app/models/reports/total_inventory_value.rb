@@ -11,13 +11,13 @@ module Reports
 
     module Common
       def start_date
-        Time.parse(@params[:report_start_date]) if @params[:report_start_date].present?
+        Date.strptime(@params[:report_start_date], "%m/%d/%Y") if @params[:report_start_date].present?
       rescue
         nil
       end
 
       def end_date
-        Time.parse(@params[:report_end_date]) if @params[:report_end_date].present?
+        Date.strptime(@params[:report_end_date], "%m/%d/%Y") if @params[:report_end_date].present?
       rescue
         nil
       end
@@ -92,6 +92,7 @@ module Reports
         results.each do |r|
           @items_data[r['id']] = r
         end
+        
 
         return @items_data
       end
